@@ -12,6 +12,11 @@
         :collapse-transition="false"
         mode="vertical"
       >
+        <el-menu-item style="height: 70px;padding: 10px 0 0 15px;">
+          <div v-show="!isCollapse">
+            <h2 style="display: inline;">西巴商城管理系统</h2>
+          </div>
+        </el-menu-item>
         <sidebar-item v-for="route in routes" :key="route.path" :item="route" :base-path="route.path" />
       </el-menu>
     </el-scrollbar>
