@@ -5,6 +5,16 @@
       <el-button type="primary" plain @click="OpenDialog('删除用户')">删除</el-button>
       <el-button type="primary" plain @click="OpenDialog('修改用户')">修改</el-button>
       <el-button type="primary" plain @click="OpenDialog('查询用户')">查询</el-button>
+      <el-tag
+        style="margin:10px 10px 0 20px;padding-left: 10px;"
+        :disable-transitions=true
+        v-for="tag in tags"
+        :key="tag.name"
+        closable
+        @close="removeTag(tag.key)"
+        :type="tag.type">
+        {{tag.name}}
+      </el-tag>
     </div>
 
     <el-table
@@ -60,7 +70,7 @@
     <!-- 弹出框1 -->
     <el-dialog :title="this.dialog_title2" :visible.sync="dialogVisible2" width="60%" >
       
-      <el-form :rules="rules" label-position="right" ref="form" :model="dialogdata2" label-width="80px">
+      <el-form  style="margin:0 20px 0 0;" :rules="rules" label-position="right" ref="form" :model="dialogdata2" label-width="80px">
         <!-- 使用el-row和el-col创建栅格布局 -->
         <el-row :gutter="20">
           <el-col :span="12" v-for="(column, index) in columns" :key="index">
@@ -104,6 +114,35 @@
     <!-- 弹出框1-2(地址选择) -->
     <El2 ref="address" style="text-align:left;margin-left:20px;margin-bottom:20px;" @address="address_finish" />
 
+
+    <!-- 弹出框2（查询用户） -->
+    <el-dialog :title="this.dialog_title3" :visible.sync="dialogVisible3" width="60%" >
+  
+      <el-form  style="margin:0 20px 0 0;" label-position="right" ref="form2" :model="dialogdata3" label-width="80px">
+        <!-- 使用el-row和el-col创建栅格布局 -->
+        <el-form-item v-for="(column, index) in columns2" :key="index" :label="column.label" :prop="column.prop">
+          <div style="display: flex;" v-if="column.label==='时间'">
+            <el-date-picker
+              v-model="dialogdata3.startDate"
+              type="datetime"
+              placeholder="选择开始时间">
+            </el-date-picker>
+            <el-date-picker
+              v-model="dialogdata3.endDate"
+              type="datetime"
+              placeholder="选择结束时间">
+            </el-date-picker>
+          </div>
+          <el-input style="max-width: 250px;" v-else v-model="dialogdata3[column.prop]"></el-input>
+        </el-form-item>         
+      </el-form>
+
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="dialogVisible3 = false">取消</el-button>
+        <el-button type="primary" @click="gotosearch()">确定</el-button>
+      </span>
+
+    </el-dialog>
 
   </div>
 </template>
@@ -165,7 +204,24 @@ import El2 from '/src/components/AddressAdd/ElAddress2'
             //{ min: 3, max: 5, message: '长度在 3 到 5 个字符', trigger: 'blur' }
           ],
         },
-        rows_selection:[]
+        rows_selection:[],
+        // 弹窗2（查询弹窗）
+        dialogVisible3:false,
+        dialog_title3:"查询筛选添加",
+        dialogdata3:
+        {
+          "id": null,
+          "name":null,
+          "startDate":null,
+          "endDate":null,
+        },
+        columns2 : [
+          { prop: 'id', label: 'ID', width: '180' },
+          { prop: 'name', label: '姓名', width: '80' },
+          { prop: 'create_time', label: '时间', width: '80' },
+        ],
+        tags: [
+        ]
       }
     },
     methods:{
@@ -258,12 +314,12 @@ import El2 from '/src/components/AddressAdd/ElAddress2'
       // 页容量变化
       handleSizeChange(val) {
         this.PageSize = val
-        this.gettable()
+        this.gettablebycondition()
       },
       // 切页
       handleCurrentChange(val) {
         this.currentPage = val
-        this.gettable()
+        this.gettablebycondition()
       },
       // 表格列选择
       handleSelectionChange(val){
@@ -339,6 +395,10 @@ import El2 from '/src/components/AddressAdd/ElAddress2'
           this.dialogVisible2 = true
         }
 
+        else if(val==="查询用户"){
+          this.dialogVisible3 = true
+        }
+
         else{
           //
         }
@@ -357,7 +417,7 @@ import El2 from '/src/components/AddressAdd/ElAddress2'
                   else if(this.dialog_title2==="修改用户")
                     this.axios_update()
                   else
-                    console.log()
+                    this.$message.error("error")
                 } else{
                   console.log("验证失败");
                 }
@@ -411,6 +471,110 @@ import El2 from '/src/components/AddressAdd/ElAddress2'
           this.$message.error(error.data.msg)
           console.log(error)
         })
+      },
+      // 发起axios条件查询
+      gettablebycondition(){
+        this.IsTableLoading = true
+        var page = {
+            currentPage: this.currentPage,
+            PageSize: this.PageSize
+          }
+        var params = {...page,...this.dialogdata3}
+        
+        axios.get('/user/selectpagebyadmin',{
+          params: params
+        }).then(response=>{
+          if(response.data.code===0)this.$message.error(response.data.msg)
+          else {
+            this.tableData = response.data.data.records
+            this.TotalPage = response.data.data.total
+            this.IsTableLoading = false
+            //this.$message.success("获取成功")
+            
+            // #region 获取筛选
+            var init_dialogdata3 = {};
+            for (let [key, value] of Object.entries(response.data.map)) {
+              if(key!=="currentPage" && key!=="PageSize"){
+                init_dialogdata3[key] = value
+              }
+            }
+            this.dialogdata3 = init_dialogdata3
+            // #endregion
+            
+            // 初始化Tag
+            this.init_Tags()
+          }
+        }).catch(error=>{
+          this.$message.error(error.data.msg)
+          console.log(error)
+        })
+      },
+      // 初始化Tag
+      init_Tags(){
+        var tags = []
+        console.log(this.dialogdata3)
+        for (let [key, value] of Object.entries(this.dialogdata3)) {
+          console.log(key + ': ' + value);
+          if(value!==null){
+            var key_name = key
+            if(key==='name')key_name = "姓名"
+            if(key==='startDate')key_name = "开始日期"
+            if(key==='endDate')key_name = "结束日期"
+
+            tags.push({ name: `${key_name} : ${value}`, type: 'success' , key:key})
+          }
+        }
+        this.tags = tags
+      },
+      // 点击查询框确定
+      gotosearch(){
+        var is_allnull = true
+        for (let value of Object.values(this.dialogdata3)) {
+          if(value!==null){
+            is_allnull = false
+            break
+          }
+        }
+        if(is_allnull){
+          this.$message.error("无筛选参数")
+          return
+        }
+        
+        // 初始化Tag
+        this.init_Tags()
+
+        // 关闭窗口
+        this.dialogVisible3 = false
+
+        // #region 发起条件查询
+        this.gettablebycondition()
+      },
+      // 点击Tag的删除
+      removeTag(key){
+        // 移除Tag
+        console.log(key)
+        this.tags = this.tags.filter(tag => tag.key !== key);
+
+        // #region 同时删除查询对象dialogdata3的对应值
+        var dialogdata3 =
+        {
+          "id": null,
+          "name":null,
+          "startDate":null,
+          "endDate":null,
+        }
+        for (let [key2, value] of Object.entries(this.dialogdata3)) {
+          if(key===key2)continue
+          dialogdata3[key2] = value
+        }
+        this.dialogdata3 = dialogdata3
+
+        console.log(this.dialogdata3)
+        // #endregion
+      
+
+        // 同时发起新条件查询
+        this.gettablebycondition()      
       }
     },
     mounted(){

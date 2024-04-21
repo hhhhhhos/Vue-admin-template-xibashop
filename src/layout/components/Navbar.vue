@@ -7,7 +7,7 @@
     <div class="right-menu">
       <el-dropdown class="avatar-container" trigger="click">
         <div class="avatar-wrapper">
-          <img :src="avatar+'?imageView2/1/w/80/h/80'" class="user-avatar">
+          <img :src=return_avata() class="user-avatar" @click.stop="goToProfile">
           <i class="el-icon-caret-bottom" />
         </div>
         <el-dropdown-menu slot="dropdown" class="user-dropdown">
@@ -16,9 +16,13 @@
               控制面板
             </el-dropdown-item>
           </router-link>
-          <a target="_blank" href="https://www.4399.com">
+          <a target="_blank" :href=url>
             <el-dropdown-item>商城首页</el-dropdown-item>
           </a>
+          <div @click="searchsession">
+            <el-dropdown-item>session</el-dropdown-item>
+          </div>
+
           <el-dropdown-item divided @click.native="logout">
             <span style="display:block;">退出登录</span>
           </el-dropdown-item>
@@ -32,11 +36,17 @@
 import { mapGetters } from 'vuex'
 import Breadcrumb from '@/components/Breadcrumb'
 import Hamburger from '@/components/Hamburger'
+import axios from '@/utils/axios';
 
 export default {
   components: {
     Breadcrumb,
     Hamburger
+  },
+  data() {
+    return {
+      url:process.env.VUE_APP_SHOP_URL
+    }
   },
   computed: {
     ...mapGetters([
@@ -45,8 +55,29 @@ export default {
     ])
   },
   methods: {
+    searchsession(){
+        axios.get('/user/session')
+        .then(response=>{
+          console.log(response.data)
+          this.$message({
+            dangerouslyUseHTMLString: true, // html格式
+            showClose:true, // 显示关闭按钮
+            duration:0, // 不会自动关闭
+            message: response.data.join('<br>')
+          });
+        }).catch(error=>{
+          this.$message.error("error")
+          console.log(error)
+        })
+    },
     toggleSideBar() {
       this.$store.dispatch('app/toggleSideBar')
+    },
+    return_avata(){
+      return `${process.env.VUE_APP_STATIC_PATH}avata.webp`
+    },
+    goToProfile(){
+      this.$message("profile")
     },
     async logout() {
       await this.$store.dispatch('user/logout')

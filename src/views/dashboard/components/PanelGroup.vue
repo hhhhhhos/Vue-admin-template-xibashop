@@ -46,7 +46,7 @@
         </div>
         <div class="card-panel-description">
           <div class="card-panel-text">
-            购物车数量
+            商品数量
           </div>
           <count-to :start-val="0" :end-val="13600" :duration="3600" class="card-panel-num" />
         </div>

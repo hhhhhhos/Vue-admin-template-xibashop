@@ -6,23 +6,41 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
 import PanelGroup from './components/PanelGroup'
+import axios from '@/utils/axios';
 
 export default {
   name: 'Dashboard',
   components: {
     PanelGroup
   },
+  data(){
+    return{
+      name:"unknown"
+    }
+  },
   computed: {
-    ...mapGetters([
-      'name'
-    ])
+
   },
   methods: {
     handleSetLineChartData() {
 
+    },
+    getrole(){
+      axios.get('/user/session')
+        .then(response=>{
+          console.log(response.data)
+          this.name = response.data?.[0].slice(6)
+          console.log("name = response.data")
+        }).catch(error=>{
+          this.$message.error("error")
+          console.log(error)
+        })
+      console.log(name)
     }
+  },
+  created(){
+    this.getrole()
   }
 }
 </script>
