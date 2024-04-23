@@ -42,7 +42,7 @@
             <div v-if="column.label==='创建时间'">{{ tableData[scope.$index][column.prop].replace(/T/g, ' ') }}</div>
             <div v-else-if="column.label==='图像'">
               <a target="_blank" :href="`${staticPath}${tableData[scope.$index][column.prop]}.webp`">
-                <img :src="`${staticPath}${tableData[scope.$index][column.prop]}.webp`" style="height:80px;width:80px;object-fit: cover;">
+                <img  loading="lazy"  :src="`${staticPath}${tableData[scope.$index][column.prop]}.webp`" style="height:80px;width:80px;object-fit: cover;">
               </a>
               </div>
             <div v-else>
@@ -533,7 +533,7 @@ import El2 from '/src/components/AddressAdd/ElAddress2'
             else {
               this.dialogVisible2 = false
               this.$message.success("添加成功")
-              this.gettable()
+              this.gettablebycondition()
             }
           }).catch(error=>{
             this.$message.error(error.data.msg)
@@ -559,7 +559,7 @@ import El2 from '/src/components/AddressAdd/ElAddress2'
           else {
             this.dialogVisible2 = false
             this.$message.success("更新成功")
-            this.gettable()
+            this.gettablebycondition()
           }
         }).catch(error=>{
           if(error.data?.msg)this.$message.error(error.data.msg)
@@ -575,7 +575,7 @@ import El2 from '/src/components/AddressAdd/ElAddress2'
           else {
             this.dialogVisible2 = false
             this.$message.success("删除成功")
-            this.gettable()
+            this.gettablebycondition()
           }
         }).catch(error=>{
           if(error.data?.msg)this.$message.error(error.data.msg)
@@ -689,7 +689,7 @@ import El2 from '/src/components/AddressAdd/ElAddress2'
       }
     },
     mounted(){
-      this.gettable()
+      this.gettablebycondition()
     },
     watch:{
       dialogVisible2:function(){

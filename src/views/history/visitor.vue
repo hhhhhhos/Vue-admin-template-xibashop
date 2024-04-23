@@ -567,7 +567,7 @@ import El2 from '/src/components/AddressAdd/ElAddress2'
             else {
               this.dialogVisible2 = false
               this.$message.success("添加成功")
-              this.gettable()
+              this.gettablebycondition()
             }
           }).catch(error=>{
             this.$message.error(error.data.msg)
@@ -593,7 +593,7 @@ import El2 from '/src/components/AddressAdd/ElAddress2'
           else {
             this.dialogVisible2 = false
             this.$message.success("更新成功")
-            this.gettable()
+            this.gettablebycondition()
           }
         }).catch(error=>{
           if(error.data?.msg)this.$message.error(error.data.msg)
@@ -609,7 +609,7 @@ import El2 from '/src/components/AddressAdd/ElAddress2'
           else {
             this.dialogVisible2 = false
             this.$message.success("删除成功")
-            this.gettable()
+            this.gettablebycondition()
           }
         }).catch(error=>{
           if(error.data?.msg)this.$message.error(error.data.msg)
@@ -723,7 +723,7 @@ import El2 from '/src/components/AddressAdd/ElAddress2'
       }
     },
     mounted(){
-      this.gettable()
+      this.gettablebycondition()
     },
     watch:{
       dialogVisible2:function(){

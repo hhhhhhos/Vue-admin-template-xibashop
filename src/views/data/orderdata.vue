@@ -45,7 +45,7 @@
             <div v-else-if="column.label==='详细信息'" style="display: flex;">
               <div v-for="(column2, index2) in tableData[scope.$index][column.prop]"
                 :key="index2" style="margin-right: 10px;display: flex;">
-                <img 
+                <img  loading="lazy"  
                 @error="handleImageError($event)"
                 :src="`${staticPath}${column2.product.photo}.webp`" style="height:80px;width:80px;object-fit: cover;margin-right: 5px;">
                 <div v-if="column2.buylist.product_num!==1" style="margin-top: 40px;" >x{{ column2.buylist.product_num }}</div>
@@ -559,7 +559,7 @@ import El2 from '/src/components/AddressAdd/ElAddress2'
             else {
               this.dialogVisible2 = false
               this.$message.success("添加成功")
-              this.gettable()
+              this.gettablebycondition()
             }
           }).catch(error=>{
             this.$message.error(error.data.msg)
@@ -585,7 +585,7 @@ import El2 from '/src/components/AddressAdd/ElAddress2'
           else {
             this.dialogVisible2 = false
             this.$message.success("更新成功")
-            this.gettable()
+            this.gettablebycondition()
           }
         }).catch(error=>{
           if(error.data?.msg)this.$message.error(error.data.msg)
@@ -601,7 +601,7 @@ import El2 from '/src/components/AddressAdd/ElAddress2'
           else {
             this.dialogVisible2 = false
             this.$message.success("删除成功")
-            this.gettable()
+            this.gettablebycondition()
           }
         }).catch(error=>{
           if(error.data?.msg)this.$message.error(error.data.msg)
@@ -715,7 +715,7 @@ import El2 from '/src/components/AddressAdd/ElAddress2'
       }
     },
     mounted(){
-      this.gettable()
+      this.gettablebycondition()
     },
     watch:{
       dialogVisible2:function(){
