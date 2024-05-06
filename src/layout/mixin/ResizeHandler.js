@@ -35,9 +35,11 @@ export default {
       if (!document.hidden) {
         const isMobile = this.$_isMobile()
         store.dispatch('app/toggleDevice', isMobile ? 'mobile' : 'desktop')
-
+        console.log("resizeHandler(),isMobile:"+isMobile)
+        this.$store.state.app.is_mobile = isMobile
         if (isMobile) {
           store.dispatch('app/closeSideBar', { withoutAnimation: true })
+          this.$store.state.app.scrollbar_width = 0
         }
       }
     }

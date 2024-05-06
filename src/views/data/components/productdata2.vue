@@ -1,49 +1,13 @@
 <template>
-  <div class="app-container">
-    <div style="margin: 0 0 20px 0">
-      <el-button type="primary" plain @click="OpenDialog('新增商品')">新增</el-button>
-      <el-button type="primary" plain @click="OpenDialog('删除商品')">删除</el-button>
-      <el-button type="primary" plain @click="OpenDialog('修改商品')">修改</el-button>
-      <el-button type="primary" plain @click="OpenDialog('查询商品')">查询</el-button>
-      
-      <!-- 排序方式 -->
-      <div style="margin: 8px 0 -5px 5px;padding: 0;">
-        <el-dropdown trigger="click" @command="column=>{value2 = column.value,value2_text=column.text}">
-          <span class="el-dropdown-link" style="cursor: pointer;color: gray;">
-            {{value2_text}}<i class="el-icon-arrow-down el-icon--right"></i>
-          </span>
-          <el-dropdown-menu slot="dropdown" :style="'margin-left: '+this.$store.state.app.scrollbar_width+'px;'">
-            <el-dropdown-item v-for="(column, index) in this.option2"
-            :key="index" @click="testinfo(column.text)"
-            :command=column :style="value2 === column.value?'color:red;':''" >{{column.text}}<i :style="value2 === column.value?'margin-left: 10px;':'display:none;'" class="el-icon-check"></i></el-dropdown-item>
-          </el-dropdown-menu>
-        </el-dropdown>
-      </div>
-
-      <el-tag
-        style="margin:10px 10px 0 20px;padding-left: 10px;"
-        :disable-transitions=true
-        v-for="tag in tags"
-        :key="tag.name"
-        closable
-        @close="removeTag(tag.key)"
-        :type="tag.type">
-        {{tag.name}}
-      </el-tag>
-    </div>
-
+  <div>
+    
     <el-table
       v-loading="IsTableLoading"
       :data="tableData"
       border fit highlight-current-row
       @selection-change="handleSelectionChange"
-      style="width:100%;">
+      style="overflow: scroll;">
 
-      <el-table-column
-        type="selection"
-        align="center"
-        width="40">
-      </el-table-column>
 
       <el-table-column
           v-for="(column, index) in this.columns"
@@ -55,6 +19,9 @@
           >
           <template slot-scope="scope" >
             <div v-if="column.label==='创建时间'">{{ tableData[scope.$index][column.prop].replace(/T/g, ' ') }}</div>
+            <div v-else-if="column.label===''">
+              <i class="el-icon-delete" style="cursor: pointer;color:orange;" @click="delete_row(scope.$index)"></i>
+            </div>
             <div v-else-if="column.label==='图像'">
               <a target="_blank" :href="`${staticPath}${tableData[scope.$index][column.prop]}.webp`">
                 <img  loading="lazy"  :src="`${staticPath}${tableData[scope.$index][column.prop]}.webp`" style="height:80px;width:80px;object-fit: cover;">
@@ -79,99 +46,24 @@
           style="margin-top: 20px;">
     </el-pagination>
 
-    <!-- 弹出框1 (增改) -->
-    <el-dialog :title="this.dialog_title2" :visible.sync="dialogVisible2" width="60%" >
-      
-      <el-form  style="margin:0 20px 0 0;" :rules="rules" label-position="right" ref="form" :model="dialogdata2" label-width="80px">
-        <!-- 使用el-row和el-col创建栅格布局 -->
-        <el-row :gutter="20">
-
-          <el-col :span="12" v-for="(column, index) in columns" :key="index">
-            <span v-if="column.label==='ID'||column.label==='创建时间'||column.label==='版本'||column.label==='图像'" />
-            <el-form-item v-else :label="column.label" :prop="column.prop">
-              <el-input v-model="dialogdata2[column.prop]"></el-input>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="图像" prop="photo" >
-              <el-upload
-                style="margin: 5px 0 0 5px;"
-                class="upload-demo"
-                ref="upload"
-                :show-file-list="true"
-                :file-list="fileList"
-                action="#"
-                :limit="1"
-                
-                :before-upload="beforeUpload"
-                :on-preview="handlePreview"
-                :on-remove="handleRemove"
-                :on-exceed="handleExceed"
-                :http-request="handleFileUpload"
-                list-type="picture">
-                <el-button size="small" type="primary">点击上传</el-button>
-                <div slot="tip" class="el-upload__tip">只能上传jpg/png一张，且不超过500kb</div>
-              </el-upload>
-            </el-form-item>
-          </el-col>
-
-        </el-row>
-        
-      </el-form>
-
-      <span slot="footer" class="dialog-footer">
-        <el-button @click="dialogVisible2 = false,gettable()">取消</el-button>
-        <el-button type="primary" @click="confirm_change">确定</el-button>
-      </span>
-    </el-dialog>
-
-    <!-- 弹出框1-2(地址选择) -->
-    <El2 ref="address" style="text-align:left;margin-left:20px;margin-bottom:20px;" @address="address_finish" />
-
-
-    <!-- 弹出框2（查询用户） -->
-    <el-dialog :title="this.dialog_title3" :visible.sync="dialogVisible3" width="60%" >
-  
-      <el-form  style="margin:0 20px 0 0;" label-position="right" ref="form2" :model="dialogdata3" label-width="80px">
-        <!-- 使用el-row和el-col创建栅格布局 -->
-        <el-form-item v-for="(column, index) in columns2" :key="index" :label="column.label" :prop="column.prop">
-          <div style="display: flex;" v-if="column.label==='时间'">
-            <el-date-picker
-              v-model="dialogdata3.startDate"
-              type="datetime"
-              placeholder="选择开始时间">
-            </el-date-picker>
-            <el-date-picker
-              v-model="dialogdata3.endDate"
-              type="datetime"
-              placeholder="选择结束时间">
-            </el-date-picker>
-          </div>
-          <el-input style="max-width: 250px;" v-else v-model="dialogdata3[column.prop]"></el-input>
-        </el-form-item>         
-      </el-form>
-
-      <span slot="footer" class="dialog-footer">
-        <el-button @click="dialogVisible3 = false">取消</el-button>
-        <el-button type="primary" @click="gotosearch()">确定</el-button>
-      </span>
-
-    </el-dialog>
-
   </div>
 </template>
 
 <script>
 import axios from '@/utils/axios';
-import El2 from '/src/components/AddressAdd/ElAddress2'
+
 
 
   export default {
     components:{
-      El2,
+      
+    },
+    props:{
+
     },
     data() {
       return {
+        fliter_name:null,
         // region vant主页筛选商品/排序
         value2: 'a',
         value2_text:'默认排序',
@@ -196,22 +88,13 @@ import El2 from '/src/components/AddressAdd/ElAddress2'
         currentPage:1,
         PageSize:10,
         TotalPage:null,
-        IsTableLoading:true,
+        IsTableLoading:false,
         columns : [
-        { prop: 'id', label: 'ID', width: '80' },
+        {  label: '' ,width: '40'},
+        { prop: 'id', label: 'ID' ,width: '120'},
+        { prop: 'product_related_list_id', label: '关联表ID'  },
         { prop: 'name', label: '姓名', width: '120' },
-        { prop: 'price', label: '价格', width: '80' },
-        { prop: 'num', label: '数量', width: '80' },
-        { prop: 'sold_num', label: '销量', width: '80' },
-        { prop: 'visited_num', label: '浏览量', width: '80' },
-        { prop: 'rate', label: '评分', width: '80' },
-        { prop: 'rate_num', label: '评分人数', width: '80' },
-        { prop: 'photo', label: '图像', width: '100',align:'center' },
-        { prop: 'info', label: '描述信息' },
-        { prop: 'type', label: '大类' , width: '80',align:'center' },
-        { prop: 'type2', label: '同类' , width: '80' ,align:'center'},
-        { prop: 'create_time', label: '创建时间', width: '180' },
-        { prop: 'version', label: '版本', width: '100' },
+        { prop: 'type', label: '商品分类' , width: '80' },
         ],
         dialogVisible2:false,
         dialog_title2:"",
@@ -300,16 +183,14 @@ import El2 from '/src/components/AddressAdd/ElAddress2'
         dialog_title3:"查询筛选添加",
         dialogdata3:
         {
-          "id": null,
+          //"id": null,
           "name":null,
-          "startDate":null,
-          "endDate":null,
-          "type2":null,
+          //"startDate":null,
+          //"endDate":null,
         },
         columns2 : [
           { prop: 'id', label: 'ID', width: '180' },
           { prop: 'name', label: '姓名', width: '80' },
-          { prop: 'type2', label: '同类名', width: '80' },
           { prop: 'create_time', label: '时间', width: '80' },
         ],
         tags: [
@@ -317,6 +198,14 @@ import El2 from '/src/components/AddressAdd/ElAddress2'
       }
     },
     methods:{
+      delete_row(val){
+        console.log("删除"+val)
+        this.tableData.splice(val,1)
+      },
+      input_event(val){
+        console.log(val)
+        this.gettablebycondition(val)
+      },
       testinfo(info){
         console.log(info)
       },
@@ -327,133 +216,7 @@ import El2 from '/src/components/AddressAdd/ElAddress2'
         console.log(this.dialogdata2)
         if(this.dialogdata2.photo!=="noproduct")this.fileList = [{ name: `${this.dialogdata2?.photo}.webp`, url: `${this.staticPath}${this.dialogdata2.photo}.webp` }];
       },
-      // 这里上传完图片和beforeUpload一起触发 // 这里上传完才会初始化this.$refs.upload.uploadFiles?.[0]?.raw
-      handleFileUpload(file) {
-        console.log("submit")
-        //console.log(file)
-        this.photo = file
-        //console.log(this.photo.file)
-        console.log(this.$refs.upload.uploadFiles?.[0]?.raw)
-      },
-      // 图片上传前检查（:auto-upload="false"会使得:before-upload="beforeUpload"被禁止）
-      beforeUpload(file) {
-        console.log("beforeUpload!")
-        const allowedTypes = ['image/jpeg', 'image/png'];
-        const isJPGorPNG = allowedTypes.includes(file.type);
-        const isLt500KB = file.size / 1024 < 500;
 
-        if (!isJPGorPNG) {
-          this.$message.error('只能上传jpg/png文件!');
-          return false;
-        }
-        if (!isLt500KB) {
-          this.$message.error('上传文件大小不能超过 500KB!');
-          return false;
-        }
-        return true;
-      },
-      // 图片移除（数组）
-      handleRemove(file, fileList) {
-        console.log("remove")
-        console.log(file, fileList);
-        console.log(this.$refs.upload?.uploadFiles?.[0]?.raw)
-        this.dialogdata2.photo = "noproduct"
-      },
-      // 图片预览（数组）
-      handlePreview(file) {
-        console.log("preview")
-        console.log(file);
-      },
-      // 图片超出限制
-      handleExceed() {
-        this.$message.error('只能上传一张图片');
-      },
-      // 地址组件选完 触发的事件
-      address_finish(index,val){
-        console.log("父组件")
-        console.log(index)
-        console.log(val)
-
-        if(this.$refs.address.dialog_title==='新增地址'){
-          const address = JSON.parse(JSON.stringify(val))
-
-          // 默认
-          if(address?.is_default){
-            this.addresses.forEach(item=>{
-              item.is_default = false
-            })
-          }
-          this.addresses.push(address)
-        }
-
-        else if(this.$refs.address.dialog_title==='更改地址'){
-          const address = JSON.parse(JSON.stringify(val))
-          console.log(address)
-          // 默认
-          if(address?.is_default){
-            this.addresses.forEach(item=>{
-              item.is_default = false
-            })
-          }
-
-          //this.addresses[index] = JSON.parse(JSON.stringify(val)) 直接改索引 vue不会渲染
-          this.$set(this.addresses, index, address);
-        }
-        
-        
-        else{
-          this.$message.error("走到这一步，说明你写错了")
-        }
-        console.log(this.addresses)
-        
-
-      },
-      // 删除地址（数组里某个）
-      delete_address(index2){
-        console.log(index2)
-        this.addresses.splice(index2,1)
-      },
-      // 新加地址
-      new_address(){
-        this.$refs.address.dialogdata =
-        {
-          "info": [],
-          "info_code":[],
-          "name": "",
-          "phone": "",
-          "detail": "",
-          "is_default":false
-        },
-        this.$refs.address.dialog_title='新增地址'
-        this.$refs.address.dialogVisible=true;
-      },
-      // 更改地址（数组里某个）// 这里深拷贝
-      change_address(index2,data2){
-        this.$refs.address.dialogdata = JSON.parse(JSON.stringify(data2))
-        this.$refs.address.dialog_title = '更改地址'
-        this.$refs.address.dialogindex = index2
-        this.$refs.address.dialogVisible=true
-      },
-      gettable(){
-        this.IsTableLoading = true
-        axios.get('/product/page',{
-          params: {
-            currentPage: this.currentPage,
-            PageSize: this.PageSize
-          }
-        }).then(response=>{
-          if(response.data.code===0)this.$message.error(response.data.msg)
-          else {
-            this.tableData = response.data.data.records
-            this.TotalPage = response.data.data.total
-            this.IsTableLoading = false
-            //this.$message.success("获取成功")
-          }
-        }).catch(error=>{
-          this.$message.error(error.data.msg)
-          console.log(error)
-        })
-      },
       // 页容量变化
       handleSizeChange(val) {
         this.PageSize = val
@@ -468,6 +231,7 @@ import El2 from '/src/components/AddressAdd/ElAddress2'
       handleSelectionChange(val){
         console.log(val)
         this.rows_selection = val
+        this.$emit("select_row",val)
       },
       // 点增删改查
       OpenDialog(val){
@@ -636,13 +400,14 @@ import El2 from '/src/components/AddressAdd/ElAddress2'
         })
       },
       // 发起axios条件查询
-      gettablebycondition(){
+      gettablebycondition(val){
+        this.dialogdata3.name = val
         this.IsTableLoading = true
         var page = {
             currentPage: this.currentPage,
             PageSize: this.PageSize
           }
-        var params = {...page,...this.dialogdata3,'value2':this.value2}
+        var params = {...page,...this.dialogdata3}
         console.log(params)
         
         axios.get('/product/selectpagebyadmin',{
@@ -655,18 +420,7 @@ import El2 from '/src/components/AddressAdd/ElAddress2'
             this.IsTableLoading = false
             //this.$message.success("获取成功")
             
-            // #region 获取筛选
-            var init_dialogdata3 = {};
-            for (let [key, value] of Object.entries(response.data.map)) {
-              if(key!=="currentPage" && key!=="PageSize" && key!=="value2"){
-                init_dialogdata3[key] = value
-              }
-            }
-            this.dialogdata3 = init_dialogdata3
-            // #endregion
-            
-            // 初始化Tag
-            this.init_Tags()
+
           }
         }).catch(error=>{
           this.$message.error(error.data.msg)
@@ -740,9 +494,6 @@ import El2 from '/src/components/AddressAdd/ElAddress2'
         // 同时发起新条件查询
         this.gettablebycondition()      
       }
-    },
-    mounted(){
-      this.gettablebycondition()
     },
     watch:{
       dialogVisible2:function(){

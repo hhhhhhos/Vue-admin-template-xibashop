@@ -9,7 +9,7 @@
           <div class="card-panel-text">
             访客数量
           </div>
-          <count-to :start-val="0" :end-val="102400" :duration="2600" class="card-panel-num" />
+          <count-to :start-val="0" :end-val=p1 :duration="2600" class="card-panel-num" />
         </div>
       </div>
     </el-col>
@@ -22,7 +22,7 @@
           <div class="card-panel-text">
             留言数量
           </div>
-          <count-to :start-val="0" :end-val="81212" :duration="3000" class="card-panel-num" />
+          <count-to :start-val="0" :end-val=p2 :duration="3000" class="card-panel-num" />
         </div>
       </div>
     </el-col>
@@ -35,7 +35,7 @@
           <div class="card-panel-text">
             订单数量
           </div>
-          <count-to :start-val="0" :end-val="9280" :duration="3200" class="card-panel-num" />
+          <count-to :start-val="0" :end-val=p3 :duration="3200" class="card-panel-num" />
         </div>
       </div>
     </el-col>
@@ -46,9 +46,9 @@
         </div>
         <div class="card-panel-description">
           <div class="card-panel-text">
-            商品数量
+            购物数量
           </div>
-          <count-to :start-val="0" :end-val="13600" :duration="3600" class="card-panel-num" />
+          <count-to :start-val="0" :end-val=p4 :duration="3600" class="card-panel-num" />
         </div>
       </div>
     </el-col>
@@ -57,15 +57,35 @@
 
 <script>
 import CountTo from 'vue-count-to'
+import axios from '@/utils/axios';
 
 export default {
   components: {
     CountTo
   },
+  data(){
+    return{
+      p1:2543,
+      p2:3445,
+      p3:3246,
+      p4:2344,
+    }
+  },
   methods: {
     handleSetLineChartData(type) {
       this.$emit('handleSetLineChartData', type)
     }
+  },
+  mounted(){
+    axios.get('/user-agent-details/init_dashboard_four')
+        .then(response=>{
+          console.log(response.data)
+          this.p1 = response.data.p1
+          this.p3 = response.data.p3
+          this.p4 = response.data.p4
+        }).catch(error=>{
+          console.log(error)
+        })
   }
 }
 </script>

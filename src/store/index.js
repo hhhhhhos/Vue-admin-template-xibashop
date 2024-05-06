@@ -19,7 +19,8 @@ const modules = modulesFiles.keys().reduce((modules, modulePath) => {
 
 const store = new Vuex.Store({
   modules,
-  getters
+  getters,
+  scrollbar_width:0
 })
 
 export default store

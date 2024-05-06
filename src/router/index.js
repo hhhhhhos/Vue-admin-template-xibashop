@@ -79,7 +79,15 @@ export const constantRoutes = [
         name: 'Tree',
         component: () => import('@/views/data/orderdata'),
         meta: { title: '订单管理', icon: 'example' }
+      },
+      /*
+      {
+        path: 'productRelated',
+        name: 'Tree',
+        component: () => import('@/views/data/productRelatedData'),
+        meta: { title: '商品关联管理', icon: 'form' }
       }
+      */
     ]
   },
 
@@ -108,9 +116,10 @@ export const constantRoutes = [
 ]
 
 const createRouter = () => new Router({
-  // mode: 'history', // require service support
+  mode: 'history', // require service support
   scrollBehavior: () => ({ y: 0 }),
-  routes: constantRoutes
+  routes: constantRoutes,
+  base: '/xiba-shop-admin'
 })
 
 const router = createRouter()

@@ -7,7 +7,9 @@ const state = {
   },
   device: 'desktop',
   size: Cookies.get('size') || 'medium',
-  VUE_APP_STATIC_PATH:process.env.VUE_APP_STATIC_PATH
+  VUE_APP_STATIC_PATH:process.env.VUE_APP_STATIC_PATH,
+  scrollbar_width:0,
+  is_mobile:false
 }
 
 const mutations = {

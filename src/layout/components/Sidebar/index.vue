@@ -1,7 +1,7 @@
 <template>
   <div :class="{'has-logo':showLogo}">
     <logo v-if="showLogo" :collapse="isCollapse" />
-    <el-scrollbar wrap-class="scrollbar-wrapper">
+    <el-scrollbar wrap-class="scrollbar-wrapper" id="myid">
       <el-menu
         :default-active="activeMenu"
         :collapse="isCollapse"
@@ -56,6 +56,36 @@ export default {
     isCollapse() {
       return !this.sidebar.opened
     }
+  },
+  
+  mounted(){
+    
+    // 观察id为myid的元素的宽度
+
+    const element = document.getElementById('myid');
+
+    // 监听元素宽度变化
+    const resizeObserver = new ResizeObserver(entries => {
+      for (let entry of entries) {
+        // 判为手机 它会缩 所以归零
+        if(!this.$store.state.app.is_mobile)
+            this.$store.state.app.scrollbar_width = entry.target.clientWidth
+        else
+            this.$store.state.app.scrollbar_width = 0
+
+        console.log("myid.clientWidth:" + this.$store.state.app.scrollbar_width);
+      }
+    });
+
+    resizeObserver.observe(element);
+
+  },
+  beforeDestroy() {
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect();  // 停止观察
+    }
   }
+  
+
 }
 </script>

@@ -41,6 +41,24 @@
         </span>
       </el-form-item>
 
+      
+      <div style="display: flex;position: relative;">
+        
+        <el-form-item style="flex-grow: 1;margin-right: 15px;" prop="captch"> 
+          <span class="svg-container">
+            <svg-icon icon-class="tree" />
+          </span>
+          <el-input v-model="loginForm.captch" tabindex="2" placeholder="验证码"/>
+        </el-form-item>
+
+        <div style="margin-bottom: 20px;min-width: 80px;max-width: 20vw;border-color: none;">
+          <img id="captchaImage"  @click="getCaptch" height="90%" width="90%" style="cursor: pointer;object-fit: contain;" />
+          <div v-if="Is_captchaLoading" class="spinner"></div>
+        </div>
+        
+      </div>
+       
+
       <el-button :loading="loading" type="primary" style="width:100%;margin-bottom:30px;" @click.native.prevent="handleLogin">登录</el-button>
 
     </el-form>
@@ -48,6 +66,7 @@
 </template>
 
 <script>
+import axios from '@/utils/axios';
 
 export default {
   name: 'Login',
@@ -55,15 +74,18 @@ export default {
     return {
       loginForm: {
         username: 'visitor',
-        password: '111111'
+        password: '111111',
+        captch:'',
       },
       loginRules: {
         username: [{ required: true, trigger: 'blur' }],
-        password: [{ required: true, trigger: 'blur' }]
+        password: [{ required: true, trigger: 'blur' }],
+        captch: [{ required: true, trigger: 'blur' }],
       },
       loading: false,
       passwordType: 'password',
-      redirect: undefined
+      redirect: undefined,
+      Is_captchaLoading:true
     }
   },
   watch: {
@@ -94,13 +116,36 @@ export default {
             this.loading = false
           }).catch(() => {
             this.loading = false
+            this.getCaptch()
           })
         } else {
           console.log('error submit!!')
           return false
         }
       })
+
+    },
+    getCaptch(){
+      axios.get('/user/getCaptch', {
+          responseType: 'blob'  // 告诉axios返回类型是blob
+      })
+      .then(response => {
+          const url = window.URL.createObjectURL(new Blob([response.data]));
+          // 假设你有一个img标签用来显示验证码
+          const img = document.getElementById('captchaImage');
+          if (img) {
+              img.src = url;
+              this.Is_captchaLoading = false
+          }
+      })
+      .catch(error => {
+          this.$message.error('Error fetching the captcha');
+          console.error(error);
+      });
     }
+  },
+  mounted(){
+    this.getCaptch()
   }
 }
 </script>
@@ -140,6 +185,7 @@ $cursor: #fff;
         box-shadow: 0 0 0px 1000px $bg inset !important;
         -webkit-text-fill-color: $cursor !important;
       }
+
     }
   }
 
@@ -150,6 +196,25 @@ $cursor: #fff;
     color: #454545;
   }
 }
+
+.spinner {
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    border-top: 4px solid #3498db;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    position: absolute;
+    top: 10%;
+    right: 1%;
+    transform: translateX(-50%);
+    animation: spin 2s linear infinite;
+  }
+
+  @keyframes spin {
+    0% { transform: translateX(-50%) rotate(0deg); }
+    100% { transform: translateX(-50%) rotate(360deg); }
+    
+  }
 </style>
 
 <style lang="scss" scoped>

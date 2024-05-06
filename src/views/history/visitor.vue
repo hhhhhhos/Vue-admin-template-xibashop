@@ -38,6 +38,12 @@
           >
           <template slot-scope="scope" >
             <div v-if="column.label==='访问时间'">{{ tableData[scope.$index][column.prop]?tableData[scope.$index][column.prop].replace(/T/g, ' '):null }}</div>
+            <div v-else-if="column.label==='姓名'">{{ isValidUUID(tableData[scope.$index][column.prop])?'UUID值':tableData[scope.$index][column.prop] }}</div>
+            <div v-else-if="column.label==='用户名'">
+              {{ tableData[scope.$index][column.prop]?
+              isValidUUID(tableData[scope.$index][column.prop])?"UUID值":tableData[scope.$index][column.prop]
+              :"未登录"}}
+            </div>
             <div v-else>
               {{ tableData[scope.$index][column.prop]}}
             </div>
@@ -168,7 +174,9 @@ import El2 from '/src/components/AddressAdd/ElAddress2'
         TotalPage:null,
         IsTableLoading:true,
         columns : [
-        { prop: 'create_time', label: '访问时间', width: '180' },
+        { prop: 'create_time', label: '访问时间', width: '160' },
+        { prop: 'visitor_name', label: '用户名', width: '80' },
+        { prop: 'wechat_nickname', label: '微信名', width: '80' },
         { prop: 'realIp', label: '访问ip', width: '120' },
         { prop: 'city', label: 'ip地点', width: '120' },
         { prop: 'originalURI', label: '访问URL' },
@@ -282,6 +290,8 @@ import El2 from '/src/components/AddressAdd/ElAddress2'
           { prop: 'browser', label: '浏览器', width: '80' },
           { prop: 'uuid', label: '访客标识', width: '80' },
           { prop: 'create_time', label: '时间', width: '80' },
+          { prop: 'visitor_name', label: '用户名', width: '80' },
+          { prop: 'wechat_nickname', label: '微信名', width: '80' },
         ],
         tags: [
         ]
@@ -720,6 +730,10 @@ import El2 from '/src/components/AddressAdd/ElAddress2'
 
         // 同时发起新条件查询
         this.gettablebycondition()      
+      },
+      isValidUUID(uuid) {
+          const regex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+          return regex.test(uuid);
       }
     },
     mounted(){
