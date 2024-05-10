@@ -20,7 +20,7 @@
           <el-table-column
             prop="user_uuid"
             label="UUID"
-            >
+            width="310">
           </el-table-column>
           <el-table-column
             label="城市名"
@@ -38,10 +38,25 @@
           </el-table-column>
           <el-table-column
             label="微信名"
-            width="180">
+            width="100"
+            align="center">
             <template slot-scope="scope" >
               <span v-html="repla(scope.row.wechat_nickname)"></span>
             </template>
+          </el-table-column>
+          <el-table-column
+            label="头像"
+            width="100"
+            align="center">
+            <template slot-scope="scope" >
+              <img style="width:40px;height:40px;border-radius: 40px;" v-if="scope.row.wechat_headimgurl" :src="scope.row.wechat_headimgurl">
+            </template>
+          </el-table-column>
+          <!-- 别删这行 是为了撑起来美观-->
+          <el-table-column
+            prop="eeee"
+            label=""
+            >
           </el-table-column>
           <el-table-column
             label="当前"
@@ -72,9 +87,10 @@
           </el-table-column>
         </el-table>
 
+        <!-- 订单表 -->
         <el-table
           v-show="type==='purchases'"
-          :row-key="Math.random()"
+          :row-key="generateUUID()"
           v-loading="tableloading"
           :data="tableData"
           height="350"
@@ -90,7 +106,18 @@
             width="200">
           </el-table-column>
           <el-table-column
-            prop="wechat_nickname"
+            prop="user_info.name"
+            label="用户名"
+            width="200">
+          </el-table-column>
+          <el-table-column
+            prop="user_info.wechat_nickname"
+            label="微信名"
+            width="200">
+          </el-table-column>
+          <!-- 别删这行 是为了撑起来美观-->
+          <el-table-column
+            prop="eeee"
             label=""
             >
           </el-table-column>
@@ -104,7 +131,7 @@
             label="创建时间"
             width="180">
             <template slot-scope="scope" >
-              {{ scope.row.create_time.replace("T"," ") }}
+              {{  myreplace(scope.row.create_time)}}
             </template>
           </el-table-column>
           <el-table-column
@@ -120,9 +147,10 @@
           </el-table-column>
         </el-table>
 
+        <!-- 购物车表 -->
         <el-table
           v-show="type==='shoppings'"
-          :row-key="Math.random()"
+          :row-key="generateUUID()"
           v-loading="tableloading"
           :data="tableData"
           height="350"
@@ -157,7 +185,7 @@
             label="创建时间"
             width="180">
             <template slot-scope="scope" >
-              {{ scope.row.create_time.replace("T"," ") }}
+              {{  myreplace(scope.row.create_time) }}
             </template>
           </el-table-column>
 
@@ -246,6 +274,17 @@ export default {
 
   },
   methods: {
+    myreplace(val) {
+      if (val) {
+        return String(val).replace("T", " ");
+      }
+      return "";
+    },
+    generateUUID() {
+        return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+          (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+        );
+    },
     handleSetLineChartData(type) {
       this.lineChartData = lineChartData[type]
       console.log(type)
@@ -266,8 +305,8 @@ export default {
         })
       console.log(name)
     },
-    getVistorsNum(){
-      axios.get(`/user-agent-details/select_dashboard_${this.type}`)
+    async getVistorsNum(){
+      await axios.get(`/user-agent-details/select_dashboard_${this.type}`)
         .then(response=>{
           console.log(response.data)
           this.response_data = response.data
@@ -298,7 +337,8 @@ export default {
       await this.getVistorsNum()
       setTimeout(() => {
         this.PointClick(6)
-        }, 500);
+        }, 200)
+      
     },
     PointClick(val){
       this.tableloading = true
@@ -337,7 +377,7 @@ export default {
       return diff <= oneMinute;
     }
   },
-  created(){
+  mounted(){
     this.init_dashboard_echarts_data()
   }
 }

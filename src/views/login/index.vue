@@ -67,6 +67,7 @@
 
 <script>
 import axios from '@/utils/axios';
+import { setToken } from '@/utils/auth'
 
 export default {
   name: 'Login',
@@ -142,10 +143,20 @@ export default {
           this.$message.error('Error fetching the captcha');
           console.error(error);
       });
+    },
+    getsession(){
+      axios.get('/user/session').then(response=>{
+        console.log(response.data)
+        if(response.data[0]==="admin"){
+            setToken(123)
+            this.$router.push({ path: this.redirect || '/' })
+          }
+        })
     }
   },
   mounted(){
     this.getCaptch()
+    this.getsession()
   }
 }
 </script>

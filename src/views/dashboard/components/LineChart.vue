@@ -11,6 +11,7 @@ import { LineChart } from 'echarts/charts';
 import { TitleComponent, TooltipComponent, GridComponent } from 'echarts/components';
 // 引入 Canvas 渲染器，注意引入 CanvasRenderer 或者 SVGRenderer 是必须的一步
 import { CanvasRenderer } from 'echarts/renderers';
+import _ from 'lodash';
 
 // 注册必须的组件
 echarts.use(
@@ -60,30 +61,9 @@ export default {
       this.initChart()
     })
 
-    // 节流器
-    function throttle(func, limit) {
-      let inThrottle;
-      return function() {
-        const args = arguments;
-        const context = this;
-        if (!inThrottle) {
-          func.apply(context, args);
-          inThrottle = true;
-          setTimeout(() => {
-            inThrottle = false;
-          }, limit);
-        }
-      };
-    }
+    // 防抖 最后一次动作200秒后触发 方法不能带括号
+    this.throttledResize = _.debounce(this.redraw, 200);
 
-    // 需要节流的函数
-    const handleResize = () => {
-      console.log('窗口大小改变了:', window.innerWidth, window.innerHeight);
-      this.chart.resize();
-    }
-
-    // 创建节流版本的函数
-    this.throttledResize = throttle(handleResize, 500);
 
     // 添加事件监听器
     window.addEventListener('resize', this.throttledResize);
@@ -184,7 +164,15 @@ export default {
         dates.push(formattedDate);
       }
       return dates;
+    },
+    redraw(){
+      this.chart.resize()
+      console.log('窗口大小改变了,防抖重绘:', window.innerWidth, window.innerHeight);
     }
   }
 }
 </script>
+
+<style>
+
+</style>
